@@ -14,6 +14,7 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Category {
   id: string;
@@ -84,11 +85,7 @@ export default function UrunDuzenlePage({
     metaDescription: "",
   });
 
-  const selectedCategory = categories.find((category) => category.id === form.categoryId);
-  const isGiftBox = selectedCategory?.slug === "hediyelik-kutu";
-  const totalStock = isGiftBox
-    ? parseInt(form.totalStock, 10) || 0
-    : variants.reduce((sum, variant) => sum + Number(variant.stock), 0);
+  const [hasVariants, setHasVariants] = useState(true);
 
   useEffect(() => {
     async function loadData() {
@@ -110,6 +107,11 @@ export default function UrunDuzenlePage({
         setCategories(categoryData);
         setImages(Array.isArray(product.images) ? product.images : []);
         setVariants(product.variants || []);
+        
+        // Varyant olup olmadığını kontrol et
+        const existingVariants = product.variants || [];
+        setHasVariants(existingVariants.length > 0);
+
         setForm({
           name: product.name || "",
           slug: product.slug || "",
@@ -186,6 +188,10 @@ export default function UrunDuzenlePage({
     }
   };
 
+  const totalStock = !hasVariants
+    ? parseInt(form.totalStock, 10) || 0
+    : variants.reduce((sum, variant) => sum + Number(variant.stock), 0);
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.categoryId) return alert("Lutfen bir kategori secin.");
@@ -202,7 +208,7 @@ export default function UrunDuzenlePage({
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
           images,
           totalStock,
-          variants: isGiftBox ? [] : variants,
+          variants: !hasVariants ? [] : variants,
         }),
       });
 
@@ -211,10 +217,11 @@ export default function UrunDuzenlePage({
         throw new Error(error.message || error.error || "Urun guncellenemedi.");
       }
 
+      toast.success("Değişiklikler başarıyla kaydedildi!");
       router.push("/admin/urunler");
       router.refresh();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Urun guncellenemedi.");
+    } catch (error: any) {
+      toast.error(error.message || "Bir hata olustu");
     } finally {
       setSaving(false);
     }
@@ -287,15 +294,7 @@ export default function UrunDuzenlePage({
               <select
                 required
                 value={form.categoryId}
-                onChange={(event) => {
-                  const category = categories.find((item) => item.id === event.target.value);
-                  if (category?.slug === "hediyelik-kutu") {
-                    setVariants([]);
-                  } else if (variants.length === 0) {
-                    setVariants([{ weight: "250g", price: 0, stock: 0 }]);
-                  }
-                  setForm((current) => ({ ...current, categoryId: event.target.value }));
-                }}
+                onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
               >
                 <option value="">Kategori Secin</option>
@@ -336,21 +335,7 @@ export default function UrunDuzenlePage({
               />
             </div>
 
-            {isGiftBox && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Stok Adedi *
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={form.totalStock}
-                  onChange={(event) => setForm((current) => ({ ...current, totalStock: event.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
-                />
-              </div>
-            )}
+
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -438,65 +423,140 @@ export default function UrunDuzenlePage({
           )}
         </div>
 
-        {!isGiftBox && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <Tag size={18} className="text-brand-500" />
-                <h2 className="font-semibold text-gray-900">Gramaj Varyantlari</h2>
+        {/* Satış Tipi ve Stok / Varyantlar */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Tag size={18} className="text-brand-500" />
+            <h2 className="font-semibold text-gray-900">Satış Tipi & Stok</h2>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <label className={`flex-1 flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${!hasVariants ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+              <input
+                type="radio"
+                name="salesType"
+                checked={!hasVariants}
+                onChange={() => {
+                  setHasVariants(false);
+                  setVariants([]);
+                }}
+                className="w-4 h-4 text-brand-500 focus:ring-brand-500"
+              />
+              <div>
+                <p className="font-semibold text-sm text-gray-900">Tekli / Adet Satışı</p>
+                <p className="text-xs text-gray-500 mt-0.5">Varyant yok, tek bir fiyat ve stok kullanılır. (Örn: Helva, Kutu)</p>
               </div>
-              <button
-                type="button"
-                onClick={addVariant}
-                className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
-              >
-                <Plus size={15} /> Varyant Ekle
-              </button>
+            </label>
+
+            <label className={`flex-1 flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${hasVariants ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+              <input
+                type="radio"
+                name="salesType"
+                checked={hasVariants}
+                onChange={() => {
+                  setHasVariants(true);
+                  if (variants.length === 0) {
+                    setVariants([
+                      { weight: "250g", price: 0, stock: 0 },
+                      { weight: "500g", price: 0, stock: 0 },
+                      { weight: "1kg", price: 0, stock: 0 }
+                    ]);
+                  }
+                }}
+                className="w-4 h-4 text-brand-500 focus:ring-brand-500"
+              />
+              <div>
+                <p className="font-semibold text-sm text-gray-900">Gramajlı / Seçenekli Satış</p>
+                <p className="text-xs text-gray-500 mt-0.5">Farklı gramajlar için farklı fiyat ve stok girilir. (Örn: Çiğ Leblebi)</p>
+              </div>
+            </label>
+          </div>
+
+          {!hasVariants && (
+            <div className="pt-2 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5 mt-4">
+                Toplam Stok Adedi *
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={form.totalStock}
+                onChange={(event) => setForm((current) => ({ ...current, totalStock: event.target.value }))}
+                placeholder="Örn: 150"
+                className="w-full sm:max-w-xs border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
+              />
             </div>
-            <div className="space-y-3">
-              {variants.map((variant, index) => (
-                <div key={index} className="grid grid-cols-3 gap-3 items-center">
-                  <input
-                    type="text"
-                    value={variant.weight}
-                    onChange={(event) => updateVariant(index, "weight", event.target.value)}
-                    placeholder="250g"
-                    className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={variant.price || ""}
-                    onChange={(event) => updateVariant(index, "price", parseFloat(event.target.value) || 0)}
-                    placeholder="Fiyat"
-                    className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                  />
-                  <div className="flex items-center gap-2">
+          )}
+
+          {hasVariants && (
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-700">Varyant Seçenekleri</h3>
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 bg-brand-50 px-2 py-1.5 rounded-lg transition-colors"
+                >
+                  <Plus size={15} /> Yeni Ekle
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 mb-2 px-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Gramaj / Seçenek</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Fiyat (₺)</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Stok Adedi</p>
+                <p className="w-8"></p>
+              </div>
+              
+              <div className="space-y-3">
+                {variants.map((variant, index) => (
+                  <div key={index} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 items-center">
+                    <input
+                      type="text"
+                      value={variant.weight}
+                      onChange={(event) => updateVariant(index, "weight", event.target.value)}
+                      placeholder="Örn: 250g"
+                      className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={variant.price || ""}
+                      onChange={(event) => updateVariant(index, "price", parseFloat(event.target.value) || 0)}
+                      placeholder="0.00"
+                      className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    />
                     <input
                       type="number"
                       min="0"
                       value={variant.stock || ""}
                       onChange={(event) => updateVariant(index, "stock", parseInt(event.target.value, 10) || 0)}
-                      placeholder="Stok"
-                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      placeholder="0"
+                      className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeVariant(index)}
-                      className="w-8 h-8 flex items-center justify-center text-red-400 hover:bg-red-50 rounded-lg transition-colors shrink-0"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="w-8 flex justify-end">
+                      {variants.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeVariant(index)}
+                          className="w-8 h-8 flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors shrink-0"
+                          title="Sil"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-4 bg-gray-50 p-3 rounded-xl inline-block border border-gray-100">
+                Toplam stok: <span className="font-semibold text-brand-600">{totalStock} adet</span>
+              </p>
             </div>
-            <p className="text-sm text-gray-500 mt-3">
-              Toplam stok: <span className="font-semibold text-gray-800">{totalStock} adet</span>
-            </p>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">

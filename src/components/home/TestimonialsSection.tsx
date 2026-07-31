@@ -4,7 +4,7 @@ const testimonials = [
   {
     id: 1,
     name: "Ayşe Kaya",
-    city: "ıstanbul",
+    city: "İstanbul",
     rating: 5,
     text: "Sarı leblebi tam da aradığım gibiydi! Çorum'dan sanki yeni gelmiş gibi taze. Artık düzenli sipariş veriyorum. Kargo da çok hızlı geldi.",
     product: "Sarı Leblebi",
@@ -20,7 +20,7 @@ const testimonials = [
   {
     id: 3,
     name: "Fatma Öztürk",
-    city: "ızmir",
+    city: "İzmir",
     rating: 5,
     text: "Hediyelik kutu anneme bayram hediyesi olarak gönderdim. Çok beğendi, paketi de çok şık. Müşteri hizmetleri de çok ilgili.",
     product: "Hediyelik Kutu",
@@ -37,31 +37,31 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="bg-gray-50 py-10 sm:py-20">
       <div className="container-main">
-        <div className="text-center mb-14">
+        <div className="mb-7 text-center sm:mb-14">
           <h2 className="section-title">Müşteri Yorumları</h2>
           <p className="section-subtitle mx-auto">
             30.000+ mutlu müşterimizin deneyimleri
           </p>
-          <div className="flex items-center justify-center gap-1 mt-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} size={20} className="text-amber-400 fill-amber-400" />
             ))}
-            <span className="ml-2 text-gray-600 font-semibold">
+            <span className="basis-full text-sm font-semibold text-gray-600 sm:ml-2 sm:basis-auto sm:text-base">
               4.9/5 (2.400+ değerlendirme)
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
           {testimonials.map((t) => (
-            <div key={t.id} className="card p-6 relative">
+            <div key={t.id} className="card relative p-5 text-center sm:p-6 sm:text-left">
               <Quote
                 size={32}
                 className="text-brand-200 absolute top-4 right-4"
               />
-              <div className="flex items-center gap-1 mb-3">
+              <div className="mb-3 flex items-center justify-center gap-1 sm:justify-start">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
@@ -75,9 +75,9 @@ export default function TestimonialsSection() {
                 ))}
               </div>
               <p className="text-gray-600 text-sm leading-relaxed mb-4 italic">
-                "{t.text}"
+                &ldquo;{t.text}&rdquo;
               </p>
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between gap-2 border-t border-gray-100 pt-3 text-left">
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
                   <p className="text-xs text-gray-400">{t.city}</p>

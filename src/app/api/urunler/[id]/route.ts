@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { unauthorized, notFound, handleError } from "@/lib/apiErrors";
+import {
+  notifySubscribersAboutDiscount,
+  shouldSendDiscountNotification,
+} from "@/lib/discountNotifications";
 
 interface Params {
   params: { id: string };
@@ -50,9 +54,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     const body = await req.json();
     const variants = normalizeVariants(body.variants);
-    const totalStock = variants
+    const totalStock = variants && variants.length > 0
       ? variants.reduce((sum, variant) => sum + variant.stock, 0)
       : Number(body.totalStock ?? 0);
+
+    const previousProduct = await prisma.product.findUnique({
+      where: { id: params.id },
+      select: {
+        name: true,
+        slug: true,
+        basePrice: true,
+        discountPrice: true,
+        isActive: true,
+      },
+    });
 
     const productData = {
       name: body.name,
@@ -106,6 +121,24 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       });
     });
 
+    if (
+      shouldSendDiscountNotification(previousProduct, {
+        name: product.name,
+        slug: product.slug,
+        basePrice: product.basePrice,
+        discountPrice: product.discountPrice,
+        isActive: product.isActive,
+      })
+    ) {
+      notifySubscribersAboutDiscount({
+        name: product.name,
+        slug: product.slug,
+        basePrice: product.basePrice,
+        discountPrice: product.discountPrice,
+        isActive: product.isActive,
+      }).catch(console.error);
+    }
+
     return NextResponse.json(product);
   } catch (error) {
     return handleError(error);
@@ -117,12 +150,37 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     const admin = await requireAdmin(req);
     if (!admin) return unauthorized();
 
-    await prisma.product.update({
+    const product = await prisma.product.findUnique({
       where: { id: params.id },
-      data: { isActive: false },
+      select: {
+        id: true,
+        orderItems: { select: { id: true }, take: 1 },
+      },
     });
 
-    return NextResponse.json({ success: true, message: "Ürün pasif yapıldı." });
+    if (!product) return notFound("Ürün bulunamadı.");
+
+    // Sipariş geçmişindeki ürünler kalıcı olarak silinemez; geçmiş kayıtları
+    // bozmadan mağazadan kaldırılır. Siparişsiz ürünler tamamen temizlenir.
+    if (product.orderItems.length > 0) {
+      await prisma.product.update({
+        where: { id: params.id },
+        data: { isActive: false },
+      });
+
+      return NextResponse.json({
+        success: true,
+        archived: true,
+        message: "Ürün sipariş geçmişini korumak için mağazadan kaldırıldı.",
+      });
+    }
+
+    await prisma.$transaction([
+      prisma.cartItem.deleteMany({ where: { productId: params.id } }),
+      prisma.product.delete({ where: { id: params.id } }),
+    ]);
+
+    return NextResponse.json({ success: true, message: "Ürün kalıcı olarak silindi." });
   } catch (error) {
     return handleError(error);
   }

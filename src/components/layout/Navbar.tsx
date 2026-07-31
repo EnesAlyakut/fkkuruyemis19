@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Menu, Search, ShoppingCart, X } from "lucide-react";
+import { ChevronDown, Menu, Search, ShoppingCart, X, Clock } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 
 type NavCategory = {
@@ -13,16 +13,16 @@ type NavCategory = {
 };
 
 const fallbackCategories: NavCategory[] = [
-  { name: "Leblebi", href: "/urunler?kategori=leblebi" },
-  { name: "Kuruyemiş", href: "/urunler?kategori=kuruyemis" },
-  { name: "Kuru Meyve", href: "/urunler?kategori=kuru-meyve" },
-  { name: "Karışık Paket", href: "/urunler?kategori=karisik-paket" },
-  { name: "Hediyelik Kutu", href: "/urunler?kategori=hediyelik-kutu" },
-  { name: "LüksLeb Kurabiyeleri", href: "/urunler?kategori=luksleb-kurabiyeleri" },
-  { name: "Çorum Hatırası Kutular", href: "/urunler?kategori=corum-hatirasi-kutular" },
-  { name: "Karışık Hediyelikler", href: "/urunler?kategori=karisik-hediyelikler" },
-  { name: "Boş Ambalajlar", href: "/urunler?kategori=bos-ambalajlar" },
-  { name: "Hatıra Ürünleri", href: "/urunler?kategori=hatira-urunleri" },
+  { name: "Leblebi", href: "/kategori/leblebi" },
+  { name: "Kuruyemiş", href: "/kategori/kuruyemis" },
+  { name: "Kuru Meyve", href: "/kategori/kuru-meyve" },
+  { name: "Karışık Paket", href: "/kategori/karisik-paket" },
+  { name: "Hediyelik Kutu", href: "/kategori/hediyelik-kutu" },
+  { name: "LüksLeb Kurabiyeleri", href: "/kategori/luksleb-kurabiyeleri" },
+  { name: "Çorum Hatırası Kutular", href: "/kategori/corum-hatirasi-kutular" },
+  { name: "Karışık Hediyelikler", href: "/kategori/karisik-hediyelikler" },
+  { name: "Boş Ambalajlar", href: "/kategori/bos-ambalajlar" },
+  { name: "Hatıra Ürünleri", href: "/kategori/hatira-urunleri" },
 ];
 
 const navLinks = [
@@ -33,6 +33,51 @@ const navLinks = [
   { name: "İletişim", href: "/iletisim" },
 ];
 
+const announcementMessages = [
+  "🌰 Bir avuç leblebi, hem midene hem ruhuna iyi gelir.",
+  "✨ Çorum'un leblebisi; asırlık ateşte, özenli ellerde kavrulur.",
+  "🥜 Kuruyemiş tüketmek için bahane arama, yiyin yeter!",
+  "💛 Günde bir avuç ceviz yiyen beyin 'teşekkür ederim' der.",
+  "🌿 Doğal, katkısız, taze — çünkü iyi şeyler basit olur.",
+  "😄 Mutlu olmak için bazen tek gereken bir kâse leblebidir.",
+  "🎁 En güzel hediye; içi dolu, kalbi sıcak bir kuruyemiş kutusu.",
+  "🏔️ Çorum dağlarının havası leblebiye geçer, leblebiden size.",
+  "🌰 Fıstık, ceviz, badem — doğanın küçük enerji depoları.",
+  "☕ Çayın yanında leblebi; Çorum'un en kadim ikilisi.",
+  "💪 Spor sonrası bir avuç badem, hem kas hem moral yapar.",
+  "🤎 Kuru kayısı tatlı isteğini bastırır — neredeyse!",
+  "🌱 İyi kuruyemiş; tarladan sofraya kısa yoldan gelir.",
+  "✨ Sevdiklerinize Çorum'dan bir lezzet gönderin, anlatsınlar!",
+];
+
+function LiveClock() {
+  const [time, setTime] = useState<string | null>(null);
+  const [date, setDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      setTime(now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }));
+      setDate(now.toLocaleDateString("tr-TR", { weekday: "short", day: "numeric", month: "short" }));
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!time) return null;
+
+  return (
+    <div className="hidden md:flex items-center gap-2 rounded-xl border-2 border-brand-200 bg-brand-50 px-3 py-1.5 ml-6 shadow-sm">
+      <Clock size={14} className="text-brand-600 shrink-0" />
+      <div className="leading-none">
+        <span className="block text-sm font-black text-brand-800 tracking-tight">{time}</span>
+        <span className="block text-[10px] text-brand-500 capitalize mt-0.5">{date}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,13 +85,30 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [categories, setCategories] = useState<NavCategory[]>(fallbackCategories);
+  const [announcementIndex, setAnnouncementIndex] = useState(0);
+  const [announcementVisible, setAnnouncementVisible] = useState(true);
   const pathname = usePathname();
-  const { items } = useCartStore();
+  const items = useCartStore((state) => state.items);
+  const hasHydrated = useCartStore((state) => state.hasHydrated);
 
-  const totalItems = mounted ? items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+  const totalItems =
+    mounted && hasHydrated
+      ? items.reduce((sum, item) => sum + item.quantity, 0)
+      : 0;
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnnouncementVisible(false);
+      setTimeout(() => {
+        setAnnouncementIndex((i) => (i + 1) % announcementMessages.length);
+        setAnnouncementVisible(true);
+      }, 400);
+    }, 7000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -59,7 +121,7 @@ export default function Navbar() {
           setCategories(
             data.map((category) => ({
               name: category.name,
-              href: `/urunler?kategori=${category.slug}`,
+              href: `/kategori/${category.slug}`,
             }))
           );
         }
@@ -83,14 +145,27 @@ export default function Navbar() {
   useEffect(() => {
     setIsMenuOpen(false);
     setIsDropdownOpen(false);
+    setSearchOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle("mobile-menu-open", isMenuOpen);
+    return () => document.body.classList.remove("mobile-menu-open");
+  }, [isMenuOpen]);
 
   return (
     <>
-      <div className="bg-gradient-to-r from-brand-700 via-brand-600 to-amber-500 text-white text-center py-2 text-sm font-medium">
-        <span className="container-main flex items-center justify-center gap-2 leading-snug">
-          <span>
-            Çorum leblebisi ve taze kuruyemişlerde özel fırsatlar sizi bekliyor.
+      <div className="bg-gradient-to-r from-brand-700 via-brand-600 to-amber-500 py-1.5 text-center text-[11px] font-medium text-white sm:py-2 sm:text-sm overflow-hidden">
+        <span className="container-main flex items-center justify-center leading-snug px-3">
+          <span
+            style={{
+              display: "inline-block",
+              opacity: announcementVisible ? 1 : 0,
+              transform: announcementVisible ? "translateY(0)" : "translateY(-8px)",
+              transition: "opacity 0.35s ease, transform 0.35s ease",
+            }}
+          >
+            {announcementMessages[announcementIndex]}
           </span>
         </span>
       </div>
@@ -103,25 +178,26 @@ export default function Navbar() {
         }`}
       >
         <div className="container-main">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <Link href="/" className="flex items-center gap-2 shrink-0">
+          <div className="flex h-14 items-center justify-between gap-2 md:h-20">
+            <Link href="/" className="flex min-w-0 shrink items-center gap-2">
               <Image
                 src="/images/logo_circular.png"
-                alt="FK KURUYEMİŞ Logo"
-                width={40}
-                height={40}
-                className="object-contain"
+                alt="FATİH KARAKUŞ Logo"
+                width={36}
+                height={36}
+                className="object-contain shrink-0"
                 priority
               />
-              <div>
-                <span className="text-lg sm:text-xl font-bold text-brand-700 font-display">
-                  FK KURUYEMİŞ
+              <div className="min-w-0">
+                <span className="block max-w-[9rem] truncate text-sm font-bold text-brand-700 font-display sm:max-w-none sm:text-xl">
+                  FATİH KARAKUŞ
                 </span>
                 <p className="text-xs text-brand-500 hidden sm:block">
                   Doğal & Taze
                 </p>
               </div>
             </Link>
+
 
             <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) =>
@@ -178,7 +254,7 @@ export default function Navbar() {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="btn-icon hidden sm:flex"
@@ -207,6 +283,7 @@ export default function Navbar() {
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
+              <LiveClock />
             </div>
           </div>
 
@@ -229,13 +306,13 @@ export default function Navbar() {
         </div>
 
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-100 bg-white animate-slide-up">
+          <div className="max-h-[calc(100svh-6.5rem)] overflow-y-auto overscroll-contain border-t border-gray-100 bg-white animate-slide-up lg:hidden">
             <div className="container-main py-4 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`block px-4 py-3 rounded-xl font-medium transition-all ${
+                  className={`block rounded-xl px-4 py-3 text-center font-medium transition-all ${
                     pathname === link.href
                       ? "text-brand-700 bg-brand-50"
                       : "text-gray-700 hover:bg-gray-50"
@@ -245,18 +322,20 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="pt-2 border-t border-gray-100">
-                <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <p className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">
                   Kategoriler
                 </p>
-                {categories.map((category) => (
-                  <Link
-                    key={category.name}
-                    href={category.href}
-                    className="block px-6 py-2 text-sm text-gray-600 hover:text-brand-700 transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                ))}
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                  {categories.map((category) => (
+                    <Link
+                      key={category.name}
+                      href={category.href}
+                      className="block rounded-xl px-4 py-2.5 text-center text-sm text-gray-600 transition-colors hover:bg-brand-50 hover:text-brand-700"
+                    >
+                      {category.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
               <div className="pt-2">
                 <form action="/urunler" method="get">

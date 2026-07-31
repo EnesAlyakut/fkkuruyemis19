@@ -30,6 +30,7 @@ model Category {
   image       String?
   order       Int       @default(0)
   isActive    Boolean   @default(true)
+  unitType    String    @default("GRAMAJ") // "GRAMAJ" veya "ADET"
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   products    Product[]
@@ -251,4 +252,40 @@ enum PaymentStatus {
 enum CouponType {
   PERCENTAGE
   FIXED
+}
+
+model AdminNotification {
+  id           String   @id @default(cuid())
+  type         String   @default("NEW_ORDER")  // NEW_ORDER, etc.
+  title        String
+  body         String   @db.Text
+  orderNumber  String?
+  orderId      String?
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@map("admin_notifications")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  isReplied Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
 }

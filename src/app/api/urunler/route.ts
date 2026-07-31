@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { notifySubscribersAboutDiscount } from "@/lib/discountNotifications";
 import { apiRateLimit } from "@/lib/rateLimit";
 import { unauthorized, tooManyRequests, handleError } from "@/lib/apiErrors";
 
@@ -118,6 +119,14 @@ export async function POST(req: NextRequest) {
       },
       include: { variants: true },
     });
+
+    notifySubscribersAboutDiscount({
+      name: product.name,
+      slug: product.slug,
+      basePrice: product.basePrice,
+      discountPrice: product.discountPrice,
+      isActive: product.isActive,
+    }).catch(console.error);
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {

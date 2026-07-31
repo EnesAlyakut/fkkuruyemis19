@@ -18,12 +18,14 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[];
   isOpen: boolean;
+  hasHydrated: boolean;
   addItem: (_item: Omit<CartItem, "id">) => void;
   removeItem: (_id: string) => void;
   updateQuantity: (_id: string, _quantity: number) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
+  setHasHydrated: (_hasHydrated: boolean) => void;
   getTotal: () => number;
   getItemCount: () => number;
 }
@@ -33,6 +35,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      hasHydrated: false,
 
       addItem: (newItem) => {
         set((state) => {
@@ -78,6 +81,7 @@ export const useCartStore = create<CartStore>()(
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
+      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
       getTotal: () =>
         get().items.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -88,6 +92,10 @@ export const useCartStore = create<CartStore>()(
     {
       name: "fk-cart",
       storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

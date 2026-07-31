@@ -1,89 +1,52 @@
-import { CheckCircle2, Leaf, Clock, Award, MapPin, Heart } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, MapPin, PackageCheck, Scale } from "lucide-react";
 
 const reasons = [
-  {
-    icon: Leaf,
-    title: "%100 Doğal Ürünler",
-    desc: "Hiçbir ürünümüzde yapay katkı maddesi, renklendirici veya koruyucu kullanmıyoruz.",
-    color: "text-forest-600",
-    bg: "bg-forest-50",
-    border: "border-forest-200",
-  },
-  {
-    icon: MapPin,
-    title: "Yerli Üreticilerden",
-    desc: "Çorum, Malatya, Gaziantep gibi bölgelerdeki güvenilir üreticilerle doğrudan çalışıyoruz.",
-    color: "text-brand-600",
-    bg: "bg-brand-50",
-    border: "border-brand-200",
-  },
-  {
-    icon: Clock,
-    title: "Taze Ürün Garantisi",
-    desc: "Her sipariş için taze kavrum garantisi veriyoruz. Eski stok asla göndermiyoruz.",
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-  },
-  {
-    icon: Award,
-    title: "30 Yıllık Tecrübe",
-    desc: "1995'ten bu yana aynı tutku ve özenle hizmet veriyoruz. Güvenilir marka.",
-    color: "text-amber-600",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-  },
-  {
-    icon: Heart,
-    title: "Müşteri Memnuniyeti",
-    desc: "30.000'den fazla mutlu müşterimiz bizi 4.9/5 yıldız ile değerlendiriyor.",
-    color: "text-red-600",
-    bg: "bg-red-50",
-    border: "border-red-200",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Kalite Kontrol",
-    desc: "Her parti ürün, sevkiyat öncesinde titizlikle kontrol ediliyor.",
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-  },
+  { icon: MapPin, title: "Çorum'da mağaza", text: "Ürünlerimizi yerinde seçiyor ve hazırlıyoruz." },
+  { icon: PackageCheck, title: "Özenli hazırlık", text: "Her sipariş gönderim öncesi kontrol edilip paketleniyor." },
+  { icon: Scale, title: "Açık fiyat bilgisi", text: "Ürün ve gramaj seçeneklerini satın almadan önce görürsünüz." },
+  { icon: CheckCircle2, title: "Gerçek ürün sunumu", text: "Ürünleri gerçeğine sadık, anlaşılır görsellerle sergiliyoruz." },
 ];
 
 export default function WhyUs() {
   return (
-    <section className="py-20 bg-white">
-      <div className="container-main">
-        <div className="text-center mb-14">
-          <h2 className="section-title">Neden FK KURUYEMİŞ?</h2>
-          <p className="section-subtitle mx-auto">
-            30 yıllık tecrübe ve binlerce mutlu müşterinin güveni
-          </p>
+    <section className="bg-stone-950 py-14 text-white sm:py-24">
+      <div className="container-main grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr] lg:gap-16">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-white/10 bg-stone-900 shadow-2xl">
+          <Image
+            src="/images/hakkimizda-bg.png"
+            alt="FK Kuruyemiş Çorum mağazası ve geleneksel leblebi ürünleri"
+            fill
+            sizes="(max-width: 1024px) 100vw, 52vw"
+            quality={82}
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+          <div className="absolute bottom-0 left-0 p-6 sm:p-8">
+            <p className="text-sm font-semibold uppercase tracking-[.18em] text-amber-300">Çorum&apos;dan sofranıza</p>
+            <p className="mt-2 max-w-md text-xl font-bold text-white sm:text-2xl">Geleneksel lezzeti modern ve güvenilir alışverişle buluşturuyoruz.</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reasons.map((reason) => {
-            const Icon = reason.icon;
-            return (
-              <div
-                key={reason.title}
-                className={`p-6 rounded-2xl border ${reason.border} ${reason.bg} hover:shadow-warm transition-all duration-300 hover:-translate-y-1`}
-              >
-                <div
-                  className={`w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-4 shadow-sm`}
-                >
-                  <Icon size={22} className={reason.color} />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2 text-lg">
-                  {reason.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {reason.desc}
-                </p>
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[.2em] text-amber-400">Neden FK Kuruyemiş?</p>
+          <h2 className="mt-4 text-3xl font-bold leading-tight text-white sm:text-5xl">Leblebiciden alışveriş yaptığınız belli olsun.</h2>
+          <p className="mt-5 max-w-xl leading-7 text-stone-300">Çorum&apos;un leblebi kültürünü; sade ürün bilgisi, düzenli kategori yapısı ve özenli paketlemeyle çevrim içi mağazamıza taşıyoruz.</p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {reasons.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="rounded-2xl border border-white/10 bg-white/[.04] p-5">
+                <Icon size={22} className="text-amber-400" aria-hidden="true" />
+                <h3 className="mt-3 text-base font-bold text-white">{title}</h3>
+                <p className="mt-1 text-sm leading-6 text-stone-400">{text}</p>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          <Link href="/hakkimizda" className="mt-8 inline-flex items-center gap-2 font-bold text-amber-400 transition hover:text-amber-300">
+            Hikâyemizi okuyun <ArrowRight size={18} />
+          </Link>
         </div>
       </div>
     </section>

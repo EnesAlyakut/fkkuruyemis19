@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Eye, Clock, CheckCircle, Package, Truck, XCircle } from "lucide-react";
+import { Eye, Clock, CheckCircle, Package, Truck, XCircle, ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
   PROCESSING: { label: "Hazırlanıyor", color: "text-purple-700", bgColor: "bg-purple-50", icon: Package },
   SHIPPED: { label: "Kargoda", color: "text-indigo-700", bgColor: "bg-indigo-50", icon: Truck },
   DELIVERED: { label: "Teslim Edildi", color: "text-green-700", bgColor: "bg-green-50", icon: CheckCircle },
-  CANCELLED: { label: "ıptal", color: "text-red-700", bgColor: "bg-red-50", icon: XCircle },
+  CANCELLED: { label: "İptal", color: "text-red-700", bgColor: "bg-red-50", icon: XCircle },
 };
 
 const paymentLabels: Record<string, string> = {
@@ -27,35 +27,36 @@ export default async function AdminSiparislerPage() {
   });
 
   return (
-    <div className="p-6 lg:p-8 pt-20 lg:pt-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 font-display">
+    <div className="p-4 pt-20 sm:p-6 lg:p-8 lg:pt-8">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900 font-display sm:text-2xl">
           Sipariş Yönetimi
         </h1>
-        <p className="text-gray-500 mt-1">{orders.length} sipariş</p>
+        <p className="text-gray-500 mt-1 text-sm">{orders.length} sipariş</p>
       </div>
 
       {/* Status Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-6">
         {Object.entries(statusConfig).map(([key, cfg]) => {
           const count = orders.filter((o) => o.status === key).length;
           const Icon = cfg.icon;
           return (
             <div key={key} className={`${cfg.bgColor} rounded-xl p-3 text-center`}>
-              <Icon size={16} className={`${cfg.color} mx-auto mb-1`} />
-              <p className={`text-lg font-bold ${cfg.color}`}>{count}</p>
-              <p className={`text-xs ${cfg.color} opacity-80`}>{cfg.label}</p>
+              <Icon size={15} className={`${cfg.color} mx-auto mb-1`} />
+              <p className={`text-base font-bold sm:text-lg ${cfg.color}`}>{count}</p>
+              <p className={`text-[10px] sm:text-xs ${cfg.color} opacity-80 leading-tight`}>{cfg.label}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Desktop Table */}
+      <div className="hidden bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                {["Sipariş No", "Müşteri", "ıletişim", "Tutar", "Ödeme", "Durum", "Tarih", "ışlem"].map(
+                {["Sipariş No", "Müşteri", "İletişim", "Tutar", "Ödeme", "Durum", "Tarih", "İşlem"].map(
                   (h) => (
                     <th
                       key={h}
@@ -82,18 +83,12 @@ export default async function AdminSiparislerPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-900 text-sm">
-                        {order.customerName}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {order.city}, {order.district}
-                      </p>
+                      <p className="font-medium text-gray-900 text-sm">{order.customerName}</p>
+                      <p className="text-xs text-gray-400">{order.city}, {order.district}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm text-gray-600">{order.customerPhone}</p>
-                      <p className="text-xs text-gray-400 truncate max-w-[150px]">
-                        {order.customerEmail}
-                      </p>
+                      <p className="text-xs text-gray-400 truncate max-w-[150px]">{order.customerEmail}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-bold text-gray-900">{order.total.toFixed(2)} ₺</p>
@@ -132,11 +127,56 @@ export default async function AdminSiparislerPage() {
             </tbody>
           </table>
           {orders.length === 0 && (
-            <div className="text-center py-12 text-gray-400">
-              Henüz sipariş yok.
-            </div>
+            <div className="text-center py-12 text-gray-400">Henüz sipariş yok.</div>
           )}
         </div>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="space-y-3 lg:hidden">
+        {orders.map((order) => {
+          const status = statusConfig[order.status] || statusConfig.PENDING;
+          const StatusIcon = status.icon;
+          return (
+            <Link
+              key={order.id}
+              href={`/admin/siparisler/${order.id}`}
+              className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-4 transition-all hover:shadow-md hover:border-brand-100"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-sm font-bold text-brand-600">{order.orderNumber}</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${status.color} ${status.bgColor}`}>
+                      <StatusIcon size={10} />
+                      {status.label}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 font-semibold text-gray-900">{order.customerName}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{order.city}, {order.district}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{order.customerPhone}</p>
+                </div>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <p className="text-lg font-bold text-gray-900">{order.total.toFixed(2)} ₺</p>
+                  <p className="text-xs text-gray-400">{order.items.length} ürün</p>
+                  <ChevronRight size={16} className="text-gray-300" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between pt-3 border-t border-gray-100">
+                <span className="text-xs text-gray-400">{paymentLabels[order.paymentMethod] || order.paymentMethod}</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(order.createdAt).toLocaleDateString("tr-TR")}{" "}
+                  {new Date(order.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+        {orders.length === 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-gray-400 shadow-sm">
+            Henüz sipariş yok.
+          </div>
+        )}
       </div>
     </div>
   );

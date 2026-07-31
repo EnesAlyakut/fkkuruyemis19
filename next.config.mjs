@@ -1,9 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: process.env.NODE_ENV === "production" ? ".next-build" : ".next",
+  output: "standalone",
 
   // Security headers
   async headers() {
+    const isProduction = process.env.NODE_ENV === "production";
+
     return [
       {
         source: "/(.*)",
@@ -23,13 +25,23 @@ const nextConfig = {
       {
         source: "/_next/static/(.*)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: isProduction
+              ? "public, max-age=31536000, immutable"
+              : "no-store, max-age=0, must-revalidate",
+          },
         ],
       },
       {
         source: "/images/(.*)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=3600" },
+          {
+            key: "Cache-Control",
+            value: isProduction
+              ? "public, max-age=31536000, immutable"
+              : "no-store, max-age=0, must-revalidate",
+          },
         ],
       },
     ];
@@ -44,7 +56,7 @@ const nextConfig = {
       { protocol: "https", hostname: "via.placeholder.com" },
     ],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 86400,
+    minimumCacheTTL: 2678400,
     deviceSizes: [640, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },

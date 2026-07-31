@@ -1,83 +1,161 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Gift, MapPin, ShieldCheck, Sparkles, Truck, Star, Package } from "lucide-react";
+
+const trustItems = [
+  { icon: MapPin, title: "Çorum'dan", text: "Doğrudan mağazamızdan" },
+  { icon: Gift, title: "Özenli paket", text: "Hediyeye hazır sunum" },
+  { icon: Truck, title: "Türkiye geneli", text: "Güvenli gönderim" },
+];
+
+const heroSlides = [
+  { src: "/images/hero-leblebi-1.jpg", alt: "Çorum leblebisi ve seçkin kuruyemişler" },
+  { src: "/images/hero-karisik-kuruyemis.png", alt: "Premium karışık kuruyemiş ve kuru meyve seçkisi" },
+  { src: "/images/hero-leblebi-2.jpg", alt: "Leblebi, kuruyemiş ve kuru meyve seçkisi" },
+  { src: "/images/hero-hediyelik-kutu.png", alt: "Özel hediyelik kuruyemiş kutusu sunumu" },
+  { src: "/images/hero-leblebi-3.jpg", alt: "Özenle hazırlanan hediyelik leblebi kutusu" },
+];
+
+
+const stats = [
+  { icon: Star, value: "4.9", label: "Müşteri puanı", color: "#f59e0b" },
+  { icon: Package, value: "500+", label: "Ürün çeşidi", color: "#34d399" },
+  { icon: Truck, value: "10K+", label: "Teslimat", color: "#60a5fa" },
+];
 
 export default function HeroSection() {
-  return (
-    <section className="relative min-h-[72svh] md:min-h-[78vh] flex items-center overflow-hidden">
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('/images/hero-bg.jpg')",
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-stone-950/90 via-stone-950/65 to-stone-950/20" />
+  const [activeSlide, setActiveSlide] = useState(0);
 
-      {/* Content */}
-      <div className="relative container-main py-14 md:py-20 z-10">
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
+    const interval = window.setInterval(() => {
+      setActiveSlide((c) => (c + 1) % heroSlides.length);
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <section className="relative isolate overflow-hidden bg-stone-950">
+      {/* Slides */}
+      {heroSlides.map((slide, index) => {
+        if (index !== activeSlide && index !== 0) return null; // Avoid rendering hidden slides initially to save bandwidth
+        return (
+          <Image
+            key={slide.src}
+            src={slide.src}
+            alt={slide.alt}
+            fill
+            priority={index === 0}
+            quality={84}
+            sizes="100vw"
+            unoptimized={slide.src.endsWith(".png")}
+            aria-hidden={index !== activeSlide}
+            className={`object-cover object-center transition-opacity duration-1000 ease-in-out ${
+              index === activeSlide ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        );
+      })}
+
+      {/* Overlays */}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,10,5,.97)_0%,rgba(15,10,5,.80)_50%,rgba(15,10,5,.35)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(245,158,11,.18),transparent_40%)]" />
+
+      {/* Live clock removed - now in Navbar */}
+
+      <div className="container-main relative flex min-h-[680px] items-center py-24 sm:min-h-[720px] lg:min-h-[760px]">
         <div className="max-w-2xl">
+
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-6 animate-fade-in">
-            <Star size={14} className="text-amber-400 fill-amber-400" />
-            <span className="text-white text-sm font-medium">
-              Çorum'dan Gelen Özel Hatıra
-            </span>
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-200 backdrop-blur-sm">
+            <Sparkles size={15} className="text-amber-400" fill="#f59e0b" />
+            Çorum&apos;un geleneksel lezzeti, özenli sunumla
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 font-display animate-slide-up">
-            Çorum Hatırası{" "}
-            <span className="text-amber-400">Hediyelikleri</span>
-            <br />
-            Kapınıza Kadar
+          {/* Heading */}
+          <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Leblebiciden çıkan
+            <span className="mt-2 block" style={{ color: "#f59e0b" }}>gerçek lezzet,</span>
+            <span className="mt-1 block text-3xl sm:text-4xl lg:text-5xl font-bold text-white/80">kapınıza kadar.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-white/85 mb-8 leading-relaxed animate-slide-up">
-            LüksLeb leblebi kurabiyeleri, premium Çorum Hatırası kutuları,
-            karışık drajeler ve özel ambalajlarla şık hediyelik sunumlar.
+          <p className="mt-6 max-w-xl text-sm leading-7 text-stone-300 sm:text-base">
+            Çorum leblebisi, taze kuruyemiş, özel draje ve hediyelik kutular.
+            Mağazamızda gördüğünüz ürünleri anlaşılır fiyatlarla, güvenle keşfedin.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 animate-slide-up">
+          {/* CTA Buttons */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/urunler"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl transition-all duration-200 shadow-warm-lg hover:shadow-warm hover:-translate-y-0.5 text-lg"
+              className="group inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-amber-500 px-7 text-base font-bold text-stone-950 shadow-[0_12px_32px_rgba(245,158,11,.35)] transition hover:bg-amber-400"
             >
               Ürünleri Keşfet
-              <ArrowRight size={20} />
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
-              href="/urunler?kategori=corum-hatirasi-kutular"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-bold rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-200 text-lg"
+              href="/kategori/corum-hatirasi-kutular"
+              className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-7 text-base font-bold text-white backdrop-blur-sm transition hover:border-amber-300/50 hover:bg-white/15"
             >
-              Çorum Hatırası Kutular
+              <Gift size={18} />
+              Hediyelik Kutular
             </Link>
           </div>
 
-          {/* Trust Badges */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-x-6 gap-y-4 mt-10 max-w-xl">
-            {[
-              { value: "1995'ten", label: "Beri" },
-              { value: "14+", label: "Özel Ürün" },
-              { value: "30.000+", label: "Mutlu Müşteri" },
-              { value: "81 İl", label: "Teslimat" },
-            ].map((badge) => (
-              <div key={badge.label} className="text-center sm:text-left min-w-0">
-                <div className="text-xl font-bold text-amber-400 font-display">
-                  {badge.value}
-                </div>
-                <div className="text-white/70 text-xs">{badge.label}</div>
+          {/* Stats row */}
+          <div className="mt-10 flex flex-wrap gap-4">
+            {stats.map(({ icon: Icon, value, label, color }) => (
+              <div key={label} className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 backdrop-blur-sm">
+                <Icon size={16} style={{ color }} />
+                <span className="text-base font-black text-white">{value}</span>
+                <span className="text-xs text-stone-400">{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust items */}
+          <div className="mt-6 grid max-w-xl grid-cols-1 gap-2.5 sm:grid-cols-3">
+            {trustItems.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/25 p-3 backdrop-blur-sm">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-400/15 text-amber-300">
+                  <Icon size={17} />
+                </span>
+                <span>
+                  <span className="block text-xs font-bold text-white">{title}</span>
+                  <span className="block text-[11px] text-stone-400">{text}</span>
+                </span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-        <div className="w-0.5 h-8 bg-white/40 rounded-full" />
-        <div className="w-1.5 h-1.5 bg-white/60 rounded-full" />
+      {/* Slide dots */}
+      <div
+        className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/15 bg-black/35 px-3 py-2 backdrop-blur-sm"
+        role="group"
+        aria-label="Ana sayfa görselleri"
+      >
+        {heroSlides.map((slide, index) => (
+          <button
+            key={slide.src}
+            type="button"
+            onClick={() => setActiveSlide(index)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              index === activeSlide ? "w-7 bg-amber-400" : "w-2 bg-white/50 hover:bg-white"
+            }`}
+            aria-label={`${index + 1}. görseli göster`}
+            aria-current={index === activeSlide ? "true" : undefined}
+          />
+        ))}
       </div>
+
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+      <span className="sr-only"><ShieldCheck /> Güvenli alışveriş</span>
     </section>
   );
 }

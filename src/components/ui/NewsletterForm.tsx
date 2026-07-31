@@ -40,15 +40,15 @@ export default function NewsletterForm() {
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="E-posta adresiniz"
+        placeholder="E-posta adresiniz..."
         required
         disabled={loading}
-        className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:border-white focus:bg-white/20 transition-all disabled:opacity-60"
+        className="min-w-0 flex-1 px-5 py-3.5 rounded-xl bg-white border-0 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-white/30 transition-all disabled:opacity-60 shadow-sm"
       />
       <button
         type="submit"
         disabled={loading}
-        className="px-6 py-3 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 transition-colors shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="px-8 py-3.5 bg-stone-900 text-white font-bold rounded-xl hover:bg-stone-800 transition-all shrink-0 disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:-translate-y-0.5"
       >
         {loading ? "Gönderiliyor..." : "Abone Ol"}
       </button>

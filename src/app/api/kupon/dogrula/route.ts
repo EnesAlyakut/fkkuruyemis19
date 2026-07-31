@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { ZodError, z } from "zod";
+import { badRequest, handleError, tooManyRequests } from "@/lib/apiErrors";
+import { validateCouponForCart } from "@/lib/coupons";
 import { apiRateLimit } from "@/lib/rateLimit";
-import { tooManyRequests, badRequest, handleError } from "@/lib/apiErrors";
-import { ZodError } from "zod";
-import { kuponDogrulaSchema } from "@/lib/validations";
+
+const couponRequestSchema = z.object({
+  code: z.string().min(1).max(50),
+  cartTotal: z.number().nonnegative().optional(),
+  orderTotal: z.number().nonnegative().optional(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,43 +17,19 @@ export async function POST(req: NextRequest) {
     if (!rl.success) return tooManyRequests();
 
     const body = await req.json();
-    const { code, cartTotal } = kuponDogrulaSchema.parse(body);
+    const { code, cartTotal, orderTotal } = couponRequestSchema.parse(body);
+    const total = cartTotal ?? orderTotal;
 
-    const coupon = await prisma.coupon.findUnique({
-      where: { code: code.toUpperCase().trim() },
-    });
-
-    if (!coupon || !coupon.isActive) {
-      return badRequest("Geçersiz kupon kodu.");
+    if (typeof total !== "number") {
+      return badRequest("Sepet tutarı doğrulanamadı.");
     }
 
-    if (coupon.expiresAt && coupon.expiresAt < new Date()) {
-      return badRequest("Kuponun süresi dolmuş.");
-    }
-
-    if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
-      return badRequest("Kupon kullanım limiti dolmuş.");
-    }
-
-    if (coupon.minOrder && cartTotal < coupon.minOrder) {
-      return badRequest(
-        `Bu kupon için minimum sipariş tutarı ${coupon.minOrder.toFixed(2)} ₺'dir.`
-      );
-    }
-
-    const discountAmount =
-      coupon.type === "PERCENTAGE"
-        ? (cartTotal * coupon.value) / 100
-        : Math.min(coupon.value, cartTotal);
+    const validation = await validateCouponForCart(code, total);
+    if (!validation.ok) return badRequest(validation.message);
 
     return NextResponse.json({
       success: true,
-      coupon: {
-        code: coupon.code,
-        type: coupon.type,
-        value: coupon.value,
-        discountAmount: Math.round(discountAmount * 100) / 100,
-      },
+      coupon: validation.coupon,
     });
   } catch (error) {
     if (error instanceof ZodError) {

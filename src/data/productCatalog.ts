@@ -1,3 +1,5 @@
+import { storeCategories, storeProducts } from "./storeCatalog";
+
 export interface CatalogCategory {
   id: string;
   name: string;
@@ -57,6 +59,7 @@ export interface CatalogProduct {
 const now = "2026-07-05T00:00:00.000Z";
 
 const categoryList: CatalogCategory[] = [
+  ...storeCategories,
   {
     id: "cat-luksleb",
     name: "LüksLeb Kurabiyeleri",
@@ -147,6 +150,7 @@ function makeReviews(productSlug: string) {
 }
 
 const rawProducts = [
+  ...storeProducts,
   {
     id: "prod-luksleb-sade",
     name: "LüksLeb Sade Leblebi Kurabiyesi 200g",

@@ -6,6 +6,25 @@ export interface NormalizedCard {
   cvc: string;
 }
 
+const BLOCKED_TEST_CARD_NUMBERS = new Set([
+  "2223003122003222",
+  "371449635398431",
+  "378282246310005",
+  "4000000000000002",
+  "4000000000000069",
+  "4000000000000119",
+  "4000000000000127",
+  "4000000000000341",
+  "4000000000009995",
+  "4111111111111111",
+  "4242424242424242",
+  "5105105105105100",
+  "5200828282828210",
+  "5555555555554444",
+  "6011111111111117",
+  "6500000000000002",
+]);
+
 function luhnCheck(cardNumber: string) {
   let sum = 0;
   let shouldDouble = false;
@@ -36,6 +55,39 @@ function isExpired(expireMonth: string, expireYear: string) {
   return expiry < now;
 }
 
+function detectCardBrand(cardNumber: string) {
+  const firstTwo = Number(cardNumber.slice(0, 2));
+  const firstFour = Number(cardNumber.slice(0, 4));
+  const firstSix = Number(cardNumber.slice(0, 6));
+
+  if (/^3[47]/.test(cardNumber)) return "amex";
+  if (/^4/.test(cardNumber)) return "visa";
+  if (firstTwo >= 51 && firstTwo <= 55) return "mastercard";
+  if (firstFour >= 2221 && firstFour <= 2720) return "mastercard";
+  if (/^6(?:011|5)/.test(cardNumber)) return "discover";
+  if (firstSix >= 979200 && firstSix <= 979289) return "troy";
+  return "unknown";
+}
+
+function hasValidBrandLength(cardNumber: string) {
+  const brand = detectCardBrand(cardNumber);
+
+  if (brand === "amex") return cardNumber.length === 15;
+  if (brand === "visa") return [13, 16, 19].includes(cardNumber.length);
+  if (brand === "mastercard") return cardNumber.length === 16;
+  if (brand === "discover") return [16, 19].includes(cardNumber.length);
+  if (brand === "troy") return cardNumber.length === 16;
+
+  return cardNumber.length >= 13 && cardNumber.length <= 19;
+}
+
+function isObviouslyFakeCardNumber(cardNumber: string) {
+  if (BLOCKED_TEST_CARD_NUMBERS.has(cardNumber)) return true;
+  if (/^(\d)\1+$/.test(cardNumber)) return true;
+  if (/^(1234|0123|9876|4321)/.test(cardNumber)) return true;
+  return false;
+}
+
 export function normalizeAndValidateCard(input: {
   cardHolder: string;
   cardNumber: string;
@@ -51,11 +103,19 @@ export function normalizeAndValidateCard(input: {
     return { ok: false, message: "Kart üzerindeki isim geçerli değil." };
   }
 
-  if (!/^\d{13,19}$/.test(number) || !luhnCheck(number)) {
+  if (
+    !/^\d{13,19}$/.test(number) ||
+    isObviouslyFakeCardNumber(number) ||
+    !hasValidBrandLength(number) ||
+    !luhnCheck(number)
+  ) {
     return { ok: false, message: "Kart numarası geçerli değil." };
   }
 
-  if (!/^\d{3,4}$/.test(cvc)) {
+  const brand = detectCardBrand(number);
+  const expectedCvcLength = brand === "amex" ? 4 : 3;
+
+  if (!new RegExp(`^\\d{${expectedCvcLength}}$`).test(cvc)) {
     return { ok: false, message: "CVV geçerli değil." };
   }
 

@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .next/
+.next-build/
 .vercel/
 
 # Environment variables
@@ -15,6 +16,7 @@ prisma/migrations/
 out/
 dist/
 build/
+work/
 
 # OS files
 .DS_Store

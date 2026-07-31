@@ -36,16 +36,29 @@ async function getProduct(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.slug);
 
-  if (!product) return { title: "Urun Bulunamadi" };
+  if (!product) return { title: "Ürün Bulunamadı" };
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fkkuruyemis.com";
+  const description =
+    product.metaDescription || product.description?.slice(0, 155) || `${product.name} ürününü FK Kuruyemiş güvencesiyle inceleyin.`;
+  const canonical = `${siteUrl}/urunler/${product.slug}`;
 
   return {
-    title: product.metaTitle || `${product.name} | FK KURUYEMIS`,
-    description:
-      product.metaDescription || product.description.substring(0, 155),
+    title: product.metaTitle || `${product.name} | FK KURUYEMİŞ`,
+    description,
+    alternates: { canonical },
     openGraph: {
       title: product.metaTitle || product.name,
-      description: product.metaDescription || product.description.substring(0, 155),
+      description,
+      url: canonical,
+      type: "website",
       images: product.images[0] ? [{ url: product.images[0] }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.metaTitle || product.name,
+      description,
+      images: product.images[0] ? [product.images[0]] : [],
     },
   };
 }
@@ -84,11 +97,15 @@ export default async function ProductDetailPage({ params }: Props) {
     name: product.name,
     description: product.description,
     image: product.images,
-    brand: { "@type": "Brand", name: "FK KURUYEMIS" },
+    sku: product.id,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://fkkuruyemis.com"}/urunler/${product.slug}`,
+    brand: { "@type": "Brand", name: "FK KURUYEMİŞ" },
     offers: {
       "@type": "Offer",
       price: (product.discountPrice || product.basePrice).toFixed(2),
       priceCurrency: "TRY",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://fkkuruyemis.com"}/urunler/${product.slug}`,
+      seller: { "@type": "Organization", name: "FK KURUYEMİŞ" },
       availability:
         product.totalStock > 0
           ? "https://schema.org/InStock"
@@ -111,7 +128,7 @@ export default async function ProductDetailPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema).replace(/</g, "\\u003c") }}
       />
       <ProductDetailClient product={product} related={related} />
     </>

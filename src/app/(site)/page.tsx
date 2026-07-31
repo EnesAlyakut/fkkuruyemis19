@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesBar from "@/components/home/FeaturesBar";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
-import BestSellers from "@/components/home/BestSellers";
-import DiscountedProducts from "@/components/home/DiscountedProducts";
-import WhyUs from "@/components/home/WhyUs";
-import TestimonialsSection from "@/components/home/TestimonialsSection";
-import BlogPreview from "@/components/home/BlogPreview";
 import { getBlogPosts } from "@/data/blogCatalog";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+// Dynamic imports for below-the-fold components to improve initial load time
+const BestSellers = dynamic(() => import("@/components/home/BestSellers"), { ssr: true });
+const DiscountedProducts = dynamic(() => import("@/components/home/DiscountedProducts"), { ssr: true });
+const WhyUs = dynamic(() => import("@/components/home/WhyUs"), { ssr: true });
+const BlogPreview = dynamic(() => import("@/components/home/BlogPreview"), { ssr: true });
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: {
@@ -105,30 +107,35 @@ export default async function HomePage() {
   const { featuredProducts, bestSellers, discountedProducts, categories, blogPosts } =
     await getHomeData();
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fkkuruyemis.com";
+  const storeSchema = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "@id": `${siteUrl}/#store`,
+    name: "FK KURUYEMİŞ",
+    description: "Çorum leblebisi, kuruyemiş ve hediyelik Çorum ürünleri mağazası",
+    url: siteUrl,
+    logo: `${siteUrl}/images/logo_circular.png`,
+    image: `${siteUrl}/images/hero-leblebi-1.jpg`,
+    telephone: "+90 505 889 88 28",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Çöplü Mahallesi Camikebir 3. Sokak",
+      addressLocality: "Çorum",
+      addressCountry: "TR",
+    },
+    sameAs: [
+      "https://www.instagram.com/fkkuruyemiss/",
+      "https://www.facebook.com/p/FK-Kuruyemi%C5%9F-Fatih-Karaku%C5%9F-61585467575881/",
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Store",
-            name: "FK KURUYEMİŞ",
-            description: "Çorum Hatırası hediyelikleri, LüksLeb ürünleri ve leblebi satışı",
-            url: process.env.NEXT_PUBLIC_SITE_URL,
-            logo: `${process.env.NEXT_PUBLIC_SITE_URL}/images/logo_circular.png`,
-            address: {
-              "@type": "PostalAddress",
-              addressLocality: "Çorum",
-              addressCountry: "TR",
-            },
-            contactPoint: {
-              "@type": "ContactPoint",
-              telephone: "+90-555-123-45-67",
-              contactType: "customer service",
-              availableLanguage: "Turkish",
-            },
-          }),
+          __html: JSON.stringify(storeSchema).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -141,7 +148,6 @@ export default async function HomePage() {
         <DiscountedProducts products={discountedProducts} />
       )}
       <WhyUs />
-      <TestimonialsSection />
       <BlogPreview posts={blogPosts} />
     </>
   );

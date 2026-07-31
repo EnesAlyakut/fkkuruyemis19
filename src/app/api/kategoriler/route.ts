@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
         image: body.image,
         order: body.order ?? 0,
         isActive: body.isActive ?? true,
+        unitType: body.unitType ?? "GRAMAJ",
       },
     });
 

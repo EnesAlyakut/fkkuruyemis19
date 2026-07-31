@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Layers, ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Layers, ImageIcon, Upload, Loader2 } from "lucide-react";
 
 export default function YeniKategoriPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -16,6 +17,7 @@ export default function YeniKategoriPage() {
     image: "",
     order: 0,
     isActive: true,
+    unitType: "GRAMAJ",
   });
 
   const slugify = (text: string) =>
@@ -28,6 +30,26 @@ export default function YeniKategoriPage() {
 
   const handleNameChange = (val: string) => {
     setForm((f) => ({ ...f, name: val, slug: slugify(val) }));
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingImage(true);
+    
+    try {
+      const fd = new FormData();
+      fd.append("file", files[0]);
+      
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Görsel yüklenemedi");
+      
+      const data = await res.json();
+      setForm((f) => ({ ...f, image: data.url }));
+    } catch (err: any) {
+      alert(err.message || "Görsel yüklenemedi");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +66,7 @@ export default function YeniKategoriPage() {
           image: form.image || undefined,
           order: Number(form.order),
           isActive: form.isActive,
+          unitType: form.unitType,
         }),
       });
 
@@ -103,7 +126,7 @@ export default function YeniKategoriPage() {
                 URL Slug *
               </label>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">/urunler?kategori=</span>
+                <span className="text-sm text-gray-400">/kategori/</span>
                 <input
                   type="text"
                   required
@@ -130,6 +153,37 @@ export default function YeniKategoriPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Birim Tipi *
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="unitType"
+                    value="GRAMAJ"
+                    checked={form.unitType === "GRAMAJ"}
+                    onChange={(e) => setForm((f) => ({ ...f, unitType: e.target.value }))}
+                    className="text-brand-500 focus:ring-brand-500 w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Gramaj (örn: 250g, 500g)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="unitType"
+                    value="ADET"
+                    checked={form.unitType === "ADET"}
+                    onChange={(e) => setForm((f) => ({ ...f, unitType: e.target.value }))}
+                    className="text-brand-500 focus:ring-brand-500 w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Adet (örn: 1 Adet, 2 Adet)</span>
+                </label>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Bu kategorideki ürünlerin nasıl satılacağını belirler.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Sıra Numarası
               </label>
               <input
@@ -151,17 +205,27 @@ export default function YeniKategoriPage() {
             <ImageIcon size={18} className="text-brand-500" />
             <h2 className="font-semibold text-gray-900">Kategori Görseli</h2>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Görsel URL
-            </label>
-            <input
-              type="url"
-              value={form.image}
-              onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
-              placeholder="https://example.com/gorsel.jpg (opsiyonel)"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
-            />
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={form.image}
+                onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+                placeholder="https://example.com/gorsel.jpg (opsiyonel)"
+                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
+              />
+              <label className="relative flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-50 text-brand-600 rounded-xl cursor-pointer hover:bg-brand-100 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleFileUpload(e.target.files)}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                <span className="text-sm font-medium whitespace-nowrap hidden sm:block">Ekle</span>
+              </label>
+            </div>
           </div>
           {form.image && (
             <div className="mt-3">

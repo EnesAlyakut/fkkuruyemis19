@@ -1,102 +1,108 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import NewsletterForm from "@/components/ui/NewsletterForm";
+import { getSiteSettings } from "@/lib/settings";
 import {
   Phone,
   MapPin,
   Instagram,
   Facebook,
   MessageCircle,
+  Mail,
 } from "lucide-react";
+
+const whatsappNumber =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/[^0-9]/g, "") ||
+  "905058898828";
 
 const footerLinks = {
   urunler: [
-    { name: "LüksLeb Kurabiyeleri", href: "/urunler?kategori=luksleb-kurabiyeleri" },
-    { name: "Çorum Hatırası Kutular", href: "/urunler?kategori=corum-hatirasi-kutular" },
-    { name: "Karışık Hediyelikler", href: "/urunler?kategori=karisik-hediyelikler" },
-    { name: "Boş Ambalajlar", href: "/urunler?kategori=bos-ambalajlar" },
-    { name: "Hatıra Ürünleri", href: "/urunler?kategori=hatira-urunleri" },
+    { name: "LüksLeb Kurabiyeleri", href: "/kategori/luksleb-kurabiyeleri" },
+    { name: "Çorum Hatırası Kutular", href: "/kategori/corum-hatirasi-kutular" },
+    { name: "Karışık Hediyelikler", href: "/kategori/karisik-hediyelikler" },
+    { name: "Boş Ambalajlar", href: "/kategori/bos-ambalajlar" },
+    { name: "Hatıra Ürünleri", href: "/kategori/hatira-urunleri" },
   ],
   kurumsal: [
     { name: "Hakkımızda", href: "/hakkimizda" },
     { name: "Blog", href: "/blog" },
     { name: "İletişim", href: "/iletisim" },
-    { name: "İade Politikası", href: "/iade-politikasi" },
-    { name: "Gizlilik Politikası", href: "/gizlilik-politikasi" },
   ],
   musteri: [
     { name: "Sepetim", href: "/sepet" },
-    { name: "Sipariş Takibi", href: "/siparis-takip" },
-    { name: "Sık Sorulan Sorular", href: "/sss" },
-    { name: "Kargo Bilgisi", href: "/kargo" },
+    { name: "Tüm Ürünler", href: "/urunler" },
+    { name: "Bize Ulaşın", href: "/iletisim" },
   ],
 };
 
-export default function Footer() {
+export default async function Footer() {
+  const settings = await getSiteSettings();
+
   return (
     <footer className="bg-stone-900 text-gray-300">
       {/* Newsletter Banner */}
-      <div className="bg-gradient-to-r from-brand-600 to-brand-500 py-12">
+      <div className="bg-brand-600 py-12 sm:py-16">
         <div className="container-main text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 font-display">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white text-brand-600 mb-6 shadow-sm">
+            <Mail size={32} strokeWidth={1.5} />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-display">
             Kampanyalardan Haberdar Olun
           </h2>
-          <p className="text-brand-200 mb-6">
-            İlk alışverişinizde %10 indirim kazanın!
+          <p className="text-brand-100 mb-8 max-w-lg mx-auto text-lg">
+            E-posta listemize katılın, ilk alışverişinize özel <span className="font-bold text-white">%10 indirim</span> kazanın!
           </p>
           <NewsletterForm />
         </div>
       </div>
 
       {/* Main Footer */}
-      <div className="py-16">
+      <div className="py-10 sm:py-16">
         <div className="container-main">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-2 sm:text-left lg:grid-cols-5 lg:gap-12">
             {/* Brand Info */}
-            <div className="lg:col-span-2">
-              <Link href="/" className="flex items-center gap-3 mb-4">
-                <div className="relative">
+            <div className="sm:col-span-2 lg:col-span-2">
+              <Link href="/" className="mb-4 flex items-center justify-center gap-3 sm:justify-start">
+                <div className="relative h-12 w-12 overflow-hidden rounded-full bg-white shadow-md ring-2 ring-white/15">
                   <Image
                     src="/images/logo_circular.png"
-                    alt="FK KURUYEMİŞ Logo"
-                    width={48}
-                    height={48}
-                    className="object-contain brightness-0 invert"
+                    alt={`${settings.siteName} Logo`}
+                    fill
+                    sizes="48px"
+                    className="object-contain"
                   />
                 </div>
                 <div>
-                  <span className="text-xl font-bold text-white font-display">
-                    FK KURUYEMİŞ
+                  <span className="text-xl font-bold text-white font-display uppercase">
+                    {settings.siteName}
                   </span>
                   <p className="text-brand-400 text-sm">Doğal & Taze</p>
                 </div>
               </Link>
-              <p className="text-sm leading-relaxed mb-6 text-gray-400 max-w-xs">
+              <p className="mx-auto mb-6 max-w-xs text-sm leading-relaxed text-gray-400 sm:mx-0">
                 1995'ten bu yana Çorum'un eşsiz leblebileri, Çorum Hatırası
                 hediyelikleri ve LüksLeb özel ürünleri sizinle. Şık ambalaj,
                 taze dolum ve hızlı teslimat garantisi.
               </p>
               <div className="space-y-3">
                 <a
-                  href="tel:+905058898828"
-                  className="flex items-center gap-2 text-sm hover:text-brand-400 transition-colors"
+                  href={`tel:${settings.contactPhone.replace(/\s/g, "")}`}
+                  className="flex items-center justify-center gap-2 text-sm transition-colors hover:text-brand-400 sm:justify-start"
                 >
                   <Phone size={14} className="text-brand-500" />
-                  0 (505) 889 88 28
+                  {settings.contactPhone}
                 </a>
-                <div className="flex items-start gap-2 text-sm">
+                <div className="flex items-start justify-center gap-2 text-sm sm:justify-start">
                   <MapPin
                     size={14}
                     className="text-brand-500 mt-0.5 shrink-0"
                   />
-                  Çöplü Mah. Camikebir 3. Sokak — Çorum
+                  {settings.address}
                 </div>
               </div>
-              <div className="flex items-center gap-3 mt-6">
+              <div className="mt-6 flex items-center justify-center gap-3 sm:justify-start">
                 <a
-                  href="https://www.instagram.com/fkkuruyemiss?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                  href={settings.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 bg-gray-800 hover:bg-pink-600 rounded-xl flex items-center justify-center transition-colors"
@@ -105,7 +111,7 @@ export default function Footer() {
                   <Instagram size={16} />
                 </a>
                 <a
-                  href="https://www.facebook.com/p/FK-Kuruyemi%C5%9F-Fatih-Karaku%C5%9F-61585467575881/"
+                  href={settings.facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 bg-gray-800 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors"
@@ -114,10 +120,7 @@ export default function Footer() {
                   <Facebook size={16} />
                 </a>
                 <a
-                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(
-                    /[^0-9]/g,
-                    ""
-                  )}`}
+                  href={`https://wa.me/${whatsappNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 bg-gray-800 hover:bg-green-600 rounded-xl flex items-center justify-center transition-colors"
@@ -197,11 +200,11 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-gray-800 py-6">
-        <div className="container-main flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="container-main flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-gray-500 text-center md:text-left">
-            © {new Date().getFullYear()} FK KURUYEMİŞ. Tüm hakları saklıdır.
+            © {new Date().getFullYear()} {settings.siteName}. Tüm hakları saklıdır.
           </p>
-          <div className="flex items-center gap-4 flex-wrap justify-center">
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
             <span className="text-xs text-gray-600">
               Güvenli ödeme ile korunuyorsunuz
             </span>

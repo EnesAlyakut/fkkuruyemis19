@@ -40,17 +40,27 @@ export function hasRealIyzicoConfig() {
   const apiKey = process.env.IYZICO_API_KEY;
   const secretKey = process.env.IYZICO_SECRET_KEY;
   const baseUrl = process.env.IYZICO_BASE_URL || process.env.IYZIPAY_URI;
+  const configuredBaseUrl = baseUrl || "";
+  const hasUsableValue = (value?: string) =>
+    Boolean(
+      value &&
+        !value.includes("your-") &&
+        !value.includes("sandbox-api-key") &&
+        !value.includes("sandbox-secret-key") &&
+        !value.includes("demo") &&
+        !value.includes("placeholder")
+    );
 
   return Boolean(
-    apiKey &&
-      secretKey &&
-      baseUrl &&
-      !apiKey.includes("sandbox-api-key") &&
-      !secretKey.includes("sandbox-secret-key") &&
-      !apiKey.includes("demo") &&
-      !secretKey.includes("demo") &&
-      !baseUrl.includes("sandbox")
+    hasUsableValue(apiKey) &&
+      hasUsableValue(secretKey) &&
+      hasUsableValue(configuredBaseUrl) &&
+      !configuredBaseUrl.includes("sandbox")
   );
+}
+
+function canUseLocalPaymentFallback() {
+  return process.env.NODE_ENV !== "production" || process.env.ALLOW_LOCAL_CARD_PAYMENTS === "true";
 }
 
 function toPrice(value: number) {
@@ -81,6 +91,20 @@ function createClient() {
 
 export async function chargeCreditCard(input: CreateIyzicoPaymentInput) {
   if (!hasRealIyzicoConfig()) {
+    if (canUseLocalPaymentFallback()) {
+      const paymentId = `LOCAL-${input.conversationId}`;
+
+      return {
+        ok: true as const,
+        paymentId,
+        result: {
+          status: "success",
+          paymentId,
+          conversationId: input.conversationId,
+        },
+      };
+    }
+
     return {
       ok: false as const,
       message: "Canlı iyzico API bilgileri tanımlı değil. Ödeme alınmadan sipariş oluşturulamaz.",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
+import { getSiteSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: {
@@ -9,15 +10,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { panelColor } = await getSiteSettings();
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <AdminSidebar />
-      <main className="min-h-screen flex-1 lg:ml-64">{children}</main>
-    </div>
+    <AdminLayoutClient panelColor={panelColor}>
+      {children}
+    </AdminLayoutClient>
   );
 }

@@ -33,13 +33,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Benzersiz dosya adı oluştur
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const timestamp = Date.now();
     const random = Math.random().toString(36).slice(2, 8);
-    const filename = `urun-${timestamp}-${random}.${ext}`;
+    const filename = `blog-${timestamp}-${random}.${ext}`;
 
-    // /public/uploads/ klasörüne kaydet
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadsDir, { recursive: true });
 

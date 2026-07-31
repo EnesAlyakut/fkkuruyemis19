@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
 import { Edit, Eye, Package, Plus } from "lucide-react";
+import DeleteCategoryButton from "@/components/admin/DeleteCategoryButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Kategori Yönetimi" };
@@ -65,13 +66,14 @@ export default async function AdminKategorilerPage() {
                 <Edit size={14} />
               </Link>
               <Link
-                href={`/urunler?kategori=${category.slug}`}
+                href={`/kategori/${category.slug}`}
                 target="_blank"
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50"
                 title="Sitede Gör"
               >
                 <Eye size={14} />
               </Link>
+              <DeleteCategoryButton categoryId={category.id} categoryName={category.name} />
             </div>
           </div>
         ))}
