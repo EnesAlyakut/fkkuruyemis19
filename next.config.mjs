@@ -49,6 +49,7 @@ const nextConfig = {
 
   // Image optimization
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "fkkuruyemis.com" },
