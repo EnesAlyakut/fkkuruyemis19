@@ -93,7 +93,6 @@ export async function getPayTRIframeToken(params: PayTRTokenParams): Promise<Pay
       payment_amount: String(totalAmount),
       paytr_token: paytrToken,
       user_basket: basketEncoded,
-      debug_on: "0",
       no_installment: installmentCount === 0 ? "1" : "0",
       max_installment: String(installmentCount || 0),
       user_name: fullName,
