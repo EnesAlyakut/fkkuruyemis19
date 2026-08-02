@@ -26,9 +26,6 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Skip DB connection during build
-ENV SKIP_ENV_VALIDATION=true
-ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
 
 RUN npm run build
 
