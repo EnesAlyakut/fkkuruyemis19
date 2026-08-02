@@ -84,6 +84,16 @@ const nextConfig = {
     return config;
   },
 
+  // Serve dynamic uploads via API in standalone mode
+  async rewrites() {
+    return [
+      {
+        source: "/uploads/:path*",
+        destination: "/api/uploads/:path*",
+      },
+    ];
+  },
+
   // Redirect www → non-www (handled by nginx in production)
   // async redirects() { return []; },
 };
