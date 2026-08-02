@@ -2,27 +2,27 @@ version: "3.9"
 
 services:
   # ============================================================
-  # MySQL Veritabanı
+  # MySQL Veritabanı (İptal edildi, bulut veritabanı kullanılıyor)
   # ============================================================
-  db:
-    image: mysql:8.0
-    container_name: fk_db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: fkrootpassword
-      MYSQL_DATABASE: fkkuruyemis
-      MYSQL_USER: fkuser
-      MYSQL_PASSWORD: fkpassword
-    volumes:
-      - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "fkuser", "-pfkpassword"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # db:
+  #   image: mysql:8.0
+  #   container_name: fk_db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: fkrootpassword
+  #     MYSQL_DATABASE: fkkuruyemis
+  #     MYSQL_USER: fkuser
+  #     MYSQL_PASSWORD: fkpassword
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
+  #   command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "fkuser", "-pfkpassword"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   # ============================================================
   # Next.js Uygulama
@@ -37,11 +37,6 @@ services:
       - "3000:3000"
     env_file:
       - .env
-    environment:
-      DATABASE_URL: mysql://fkuser:fkpassword@db:3306/fkkuruyemis
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - ./public/uploads:/app/public/uploads
 
@@ -55,11 +50,6 @@ services:
     container_name: fk_migrate
     env_file:
       - .env
-    environment:
-      DATABASE_URL: mysql://fkuser:fkpassword@db:3306/fkkuruyemis
-    depends_on:
-      db:
-        condition: service_healthy
     restart: "no"
 
   # ============================================================
