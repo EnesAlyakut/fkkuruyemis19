@@ -54,16 +54,7 @@ async function getDashboardData() {
       status: { notIn: excludedRevenueStatuses },
     };
 
-    const [
-      totalOrders,
-      pendingOrders,
-      todayOrders,
-      totalRevenue,
-      todayRevenue,
-      totalProducts,
-      recentOrders,
-      newsletterCount,
-    ] = await Promise.all([
+    const results = await Promise.allSettled([
       prisma.order.count(),
       prisma.order.count({ where: { status: { in: ["PENDING", "CONFIRMED", "PROCESSING"] } } }),
       prisma.order.count({ where: { createdAt: { gte: today } } }),
@@ -80,6 +71,15 @@ async function getDashboardData() {
       }),
       prisma.newsletter.count({ where: { isActive: true } }),
     ]);
+
+    const totalOrders = results[0].status === "fulfilled" ? results[0].value : 0;
+    const pendingOrders = results[1].status === "fulfilled" ? results[1].value : 0;
+    const todayOrders = results[2].status === "fulfilled" ? results[2].value : 0;
+    const totalRevenue = results[3].status === "fulfilled" ? results[3].value : { _sum: { total: 0 } };
+    const todayRevenue = results[4].status === "fulfilled" ? results[4].value : { _sum: { total: 0 } };
+    const totalProducts = results[5].status === "fulfilled" ? results[5].value : 0;
+    const recentOrders = results[6].status === "fulfilled" ? results[6].value : [];
+    const newsletterCount = results[7].status === "fulfilled" ? results[7].value : 0;
 
     return {
       totalOrders,
