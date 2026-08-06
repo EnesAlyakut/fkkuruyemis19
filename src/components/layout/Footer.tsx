@@ -86,11 +86,11 @@ export default async function Footer() {
               </p>
               <div className="space-y-3">
                 <a
-                  href={`tel:${settings.contactPhone.replace(/\s/g, "")}`}
+                  href={`tel:${(settings?.contactPhone || "+90 505 889 88 28").replace(/\s/g, "")}`}
                   className="flex items-center justify-center gap-2 text-sm transition-colors hover:text-brand-400 sm:justify-start"
                 >
                   <Phone size={14} className="text-brand-500" />
-                  {settings.contactPhone}
+                  {settings?.contactPhone || "+90 505 889 88 28"}
                 </a>
                 <div className="flex items-start justify-center gap-2 text-sm sm:justify-start">
                   <MapPin
