@@ -24,8 +24,13 @@ export const metadata: Metadata = {
 };
 
 async function getHomeData() {
-  const [categories, featuredProducts, bestSellers, discountedProducts] =
-    await Promise.all([
+  let categories: any[] = [];
+  let featuredProducts: any[] = [];
+  let bestSellers: any[] = [];
+  let discountedProducts: any[] = [];
+
+  try {
+    const results = await Promise.all([
       prisma.category.findMany({
         where: { isActive: true },
         orderBy: [{ order: "asc" }, { name: "asc" }],
@@ -66,6 +71,13 @@ async function getHomeData() {
         },
       }),
     ]);
+    categories = results[0];
+    featuredProducts = results[1];
+    bestSellers = results[2];
+    discountedProducts = results[3];
+  } catch (error) {
+    console.error("HomePage DB error during build:", error);
+  }
 
   const blogPosts = getBlogPosts().slice(0, 3);
   const normalizeProduct = (product: (typeof featuredProducts)[number]) => ({

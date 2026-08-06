@@ -9,18 +9,27 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://fkkuruyemis.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const blogPosts = getBlogPosts();
-  const [products, categories] = await Promise.all([
-    prisma.product.findMany({
-      where: { isActive: true },
-      select: { slug: true, updatedAt: true },
-      orderBy: { updatedAt: "desc" },
-    }),
-    prisma.category.findMany({
-      where: { isActive: true },
-      select: { slug: true, updatedAt: true },
-      orderBy: { order: "asc" },
-    }),
-  ]);
+  let products: any[] = [];
+  let categories: any[] = [];
+
+  try {
+    const results = await Promise.all([
+      prisma.product.findMany({
+        where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.category.findMany({
+        where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+        orderBy: { order: "asc" },
+      }),
+    ]);
+    products = results[0];
+    categories = results[1];
+  } catch (error) {
+    console.error("Sitemap DB error during build:", error);
+  }
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: now, changeFrequency: "daily", priority: 1 },
