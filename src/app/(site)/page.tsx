@@ -30,7 +30,7 @@ async function getHomeData() {
   let discountedProducts: any[] = [];
 
   try {
-    const results = await Promise.all([
+    const results = await Promise.allSettled([
       prisma.category.findMany({
         where: { isActive: true },
         orderBy: [{ order: "asc" }, { name: "asc" }],
@@ -71,12 +71,18 @@ async function getHomeData() {
         },
       }),
     ]);
-    categories = results[0];
-    featuredProducts = results[1];
-    bestSellers = results[2];
-    discountedProducts = results[3];
+    categories = results[0].status === "fulfilled" ? results[0].value : [];
+    featuredProducts = results[1].status === "fulfilled" ? results[1].value : [];
+    bestSellers = results[2].status === "fulfilled" ? results[2].value : [];
+    discountedProducts = results[3].status === "fulfilled" ? results[3].value : [];
+
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        console.error("HomePage DB error (partial):", result.reason);
+      }
+    });
   } catch (error) {
-    console.error("HomePage DB error during build:", error);
+    console.error("HomePage DB error (unexpected):", error);
   }
 
   const blogPosts = getBlogPosts().slice(0, 3);

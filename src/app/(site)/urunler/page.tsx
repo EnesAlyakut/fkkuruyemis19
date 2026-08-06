@@ -54,38 +54,58 @@ export default async function UrunlerPage({
       : {}),
   };
 
-  const [products, totalCount, categories, activeCategory] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: {
-        category: { select: { id: true, name: true, slug: true } },
-        variants: { orderBy: { price: "asc" } },
-        reviews: {
-          where: { isApproved: true },
-          select: { rating: true },
+  let products: any[] = [];
+  let totalCount = 0;
+  let categories: any[] = [];
+  let activeCategory: any = null;
+
+  try {
+    const results = await Promise.allSettled([
+      prisma.product.findMany({
+        where,
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          variants: { orderBy: { price: "asc" } },
+          reviews: {
+            where: { isApproved: true },
+            select: { rating: true },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * perPage,
-      take: perPage,
-    }),
-    prisma.product.count({ where }),
-    prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-      include: {
-        _count: {
-          select: { products: { where: { isActive: true } } },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * perPage,
+        take: perPage,
+      }),
+      prisma.product.count({ where }),
+      prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { order: "asc" },
+        include: {
+          _count: {
+            select: { products: { where: { isActive: true } } },
+          },
         },
-      },
-    }),
-    kategori
-      ? prisma.category.findFirst({
-          where: { slug: kategori, isActive: true },
-          select: { id: true, name: true, slug: true },
-        })
-      : Promise.resolve(null),
-  ]);
+      }),
+      kategori
+        ? prisma.category.findFirst({
+            where: { slug: kategori, isActive: true },
+            select: { id: true, name: true, slug: true },
+          })
+        : Promise.resolve(null),
+    ]);
+    
+    products = results[0].status === "fulfilled" ? results[0].value : [];
+    totalCount = results[1].status === "fulfilled" ? results[1].value : 0;
+    categories = results[2].status === "fulfilled" ? results[2].value : [];
+    activeCategory = results[3].status === "fulfilled" ? results[3].value : null;
+
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        console.error("Urunler page DB error (partial):", result.reason);
+      }
+    });
+  } catch (error) {
+    console.error("Urunler page DB error (unexpected):", error);
+  }
 
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
   const normalizedProducts = products.map((product) => ({
