@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 
 export default async function IletisimPage() {
   const settings = await getSiteSettings();
-  const rawPhone = settings.contactPhone.replace(/[^0-9]/g, "");
+  const contactPhone = settings?.contactPhone || "+90 505 889 88 28";
+  const rawPhone = contactPhone.replace(/[^0-9]/g, "");
 
   return (
     <div
@@ -38,7 +39,7 @@ export default async function IletisimPage() {
           <div className="lg:col-span-2 space-y-5">
 
             <a
-              href={`tel:${settings.contactPhone.replace(/\s/g, "")}`}
+              href={`tel:${(settings?.contactPhone || "+90 505 889 88 28").replace(/\s/g, "")}`}
               className="flex items-start sm:items-center gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-brand-100 shadow-sm hover:shadow-warm hover:-translate-y-0.5 transition-all duration-200 group"
             >
               <div className="w-14 h-14 bg-brand-50 text-brand-600 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-brand-100 transition-colors">
@@ -46,7 +47,7 @@ export default async function IletisimPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-brand-500 uppercase tracking-wider mb-0.5">Telefon &amp; WhatsApp</p>
-                <p className="text-lg font-bold text-gray-900">{settings.contactPhone}</p>
+                <p className="text-lg font-bold text-gray-900">{settings?.contactPhone || "+90 505 889 88 28"}</p>
                 <p className="text-sm text-gray-500">Hafta içi ve Cumartesi: 09:00 – 20:00</p>
               </div>
             </a>
@@ -62,13 +63,13 @@ export default async function IletisimPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-green-500 uppercase tracking-wider mb-0.5">WhatsApp</p>
-                <p className="text-lg font-bold text-gray-900">{settings.contactPhone}</p>
+                <p className="text-lg font-bold text-gray-900">{settings?.contactPhone || "+90 505 889 88 28"}</p>
                 <p className="text-sm text-gray-500">Hızlı yanıt için yazın</p>
               </div>
             </a>
 
             <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(settings.address)}`}
+              href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Çorum")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-start sm:items-center gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-purple-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
@@ -78,12 +79,12 @@ export default async function IletisimPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-purple-500 uppercase tracking-wider mb-0.5">Adresimiz</p>
-                <p className="font-bold text-gray-900 leading-snug line-clamp-2">{settings.address}</p>
+                <p className="font-bold text-gray-900 leading-snug line-clamp-2">{settings?.address || "Çorum"}</p>
               </div>
             </a>
 
             <a
-              href={`mailto:${settings.contactEmail}`}
+              href={`mailto:${settings?.contactEmail || "info@fkkuruyemis.com"}`}
               className="flex items-start sm:items-center gap-4 p-4 sm:p-5 bg-white rounded-2xl border border-sky-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
             >
               <div className="w-14 h-14 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-sky-100 transition-colors">
@@ -91,7 +92,7 @@ export default async function IletisimPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">E-Posta</p>
-                <p className="font-bold text-gray-900 break-all">{settings.contactEmail}</p>
+                <p className="font-bold text-gray-900 break-all">{settings?.contactEmail || "info@fkkuruyemis.com"}</p>
               </div>
             </a>
 
@@ -123,7 +124,7 @@ export default async function IletisimPage() {
             </div>
 
             <div className="p-4 rounded-2xl text-center border border-brand-100 bg-white">
-              <p className="text-brand-700 font-bold text-sm uppercase">{settings.siteName}</p>
+              <p className="text-brand-700 font-bold text-sm uppercase">{settings?.siteName || "FK KURUYEMİŞ"}</p>
               <p className="text-brand-600 text-xs mt-1">Tazeliğin ve Geleneksel Lezzetin Adresi</p>
             </div>
           </div>
